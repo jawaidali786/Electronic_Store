@@ -22,7 +22,7 @@ public class User implements UserDetails {
     private String userId;
     @Column(name = "USER_NAME", length = 30)
     private String name;
-    @Column(name = "USER_PASSWORD", length = 8)
+    @Column(name = "USER_PASSWORD", length = 500)
     private String password;
     @Column(name = "USER_EMAIL", unique = true)
     private String email;
@@ -38,7 +38,7 @@ public class User implements UserDetails {
     private Set<Role> roles = new HashSet<>();
 
 
-    //methods for security to implemented by interface UserDetails
+    //methods for implementing security by interface UserDetails and its implemented methods.
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();

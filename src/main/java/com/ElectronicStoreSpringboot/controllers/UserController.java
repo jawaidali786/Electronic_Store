@@ -64,7 +64,7 @@ public class UserController {
         return new ResponseEntity<>(message, HttpStatus.OK);
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping("/user/{userId}")
     public ResponseEntity<UserDTO> getUserByIdHandler(@PathVariable String userId){
         logger.info("Fetching user with id: {}", userId);
         UserDTO userDTO = userService.now_getUserById(userId);

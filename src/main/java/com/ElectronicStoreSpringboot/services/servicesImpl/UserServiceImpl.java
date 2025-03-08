@@ -4,6 +4,7 @@ import com.ElectronicStoreSpringboot.Dtos.PageableResponse;
 import com.ElectronicStoreSpringboot.Dtos.UserDTO;
 import com.ElectronicStoreSpringboot.entities.User;
 import com.ElectronicStoreSpringboot.exceptions.ResourceNotFoundException;
+import com.ElectronicStoreSpringboot.helper.ResponseHelper;
 import com.ElectronicStoreSpringboot.repositories.UserRepository;
 import com.ElectronicStoreSpringboot.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.modelmapper.ModelMapper;
 
@@ -21,12 +23,22 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private ModelMapper modelMapper;
+    
+    private final UserRepository userRepository;
+    
+    private final PasswordEncoder passwordEncoder;
+    
+    private final ModelMapper modelMapper;
+    
+    private final ResponseHelper responseHelper;
+    
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper,
+                          PasswordEncoder passwordEncoder, ResponseHelper responseHelper) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.modelMapper = modelMapper;
+        this.responseHelper = responseHelper;
+    }
 
     //method to convert UserDto to User entity
     public User userDtoTouser(UserDTO userDTO) {
@@ -45,6 +57,10 @@ public class UserServiceImpl implements UserService {
     public UserDTO lets_createUser(UserDTO userDTO) {
 
         String userId = UUID.randomUUID().toString();
+        //encoding password for security purposes.
+        userDTO.setUserId(userId);
+        userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+
         User newUser = userDtoTouser(userDTO);
         newUser = userRepository.save(newUser);
         UserDTO newUserDto = userTouserDto(newUser);
@@ -95,22 +111,9 @@ public class UserServiceImpl implements UserService {
         // Fetching the paginated result from the repository
         Page<User> page = userRepository.findAll(pageable);
 
-        // Convert the list of User entities to UserDTOs using the existing method
-        List<UserDTO> userDTOs = page.getContent().stream()
-                .map(this::userTouserDto) // Use the existing method to convert User to UserDTO
-                .collect(Collectors.toList());
+        PageableResponse<UserDTO> pageableResponse = ResponseHelper.convertToPageableResponse(page, UserDTO.class);
 
-        // Create the PageableResponse object
-        PageableResponse<UserDTO> response = PageableResponse.<UserDTO>builder()
-                .content(userDTOs) // Set the content
-                .pageNumber(page.getNumber()) // Current page number
-                .pageSize(page.getSize()) // Size of the page
-                .totalElements(page.getTotalElements()) // Total number of elements
-                .totalPages(page.getTotalPages()) // Total number of pages
-                .lastPage(page.isLast()) // Is this the last page?
-                .build();
-
-        return response;
+        return pageableResponse;
     }
 
     @Override

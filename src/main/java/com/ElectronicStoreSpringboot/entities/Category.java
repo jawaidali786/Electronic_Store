@@ -15,6 +15,7 @@ public class Category {
 
     @Id
     private String categoryId;
+    private String name;
     @Column(name = "Category_Title", length = 250)
     private String title;
     @Column(name = "Category_Description", length = 500)
